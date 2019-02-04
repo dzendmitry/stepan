@@ -1,12 +1,15 @@
 import pickle
 import threading
 import queue
-import math
 
 from keras.models import load_model
 import numpy as np
 import librosa
 from scipy import signal
+
+min_message_length = 60000 # the name of STEPAN
+min_message_in_samples = int(min_message_length / 2)
+silent_stepans = 5
 
 # pre-def
 q = queue.Queue(1024)
@@ -72,6 +75,8 @@ def run():
         if len(sound_chunk) % 2 != 0:
             sound_chunk = sound_chunk[:-1]
         sound_data = np.frombuffer(sound_chunk, dtype=np.int16)
+        print('sound_data numpy: ', sound_data.shape)
+        print('sound_chunk len: ', len(sound_chunk))
         audio_features = extract_audio_features(sound_data.astype(np.float32), sampling_rate, hop_length)
         print('is familiar command: ', is_familiar_command(one_class_svm_model.predict(audio_features)))
 

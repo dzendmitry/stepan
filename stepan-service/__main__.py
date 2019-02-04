@@ -3,6 +3,7 @@
 import asyncio
 import stepan
 import replier
+import noiser
 
 import udp_ep
 import http_ep
@@ -13,6 +14,8 @@ if __name__ == "__main__":
     stepan.start()
     # replier
     replier.start()
+    # noise lvl updater
+    noiser.start()
 
     loop = asyncio.get_event_loop()
     # Prepare udp server
