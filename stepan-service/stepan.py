@@ -25,11 +25,42 @@ n_mfcc = 13
 one_class_svm_model = None
 stepan_model = None
 
+def get_spectrogram_of_data(samples, sample_rate=44100):
+    frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate)
+    return spectrogram.T
+
+class StepanBatchGenerator:
+
+    def __init__(self, data, num_steps=60, batch_size=8, skip_steps=30, freq=129):
+        self.data = data
+        self.num_steps = num_steps
+        self.batch_size = batch_size
+        self.skip_steps = skip_steps
+        self.freq = freq
+        self.current_pos_in_spectrogram = 0
+        self.current_spectrogram = get_spectrogram_of_data(self.data)
+        print('current_spectrogram', len(self.current_spectrogram))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        while self.current_pos_in_spectrogram + self.num_steps < len(self.current_spectrogram):
+            x = np.zeros((self.batch_size, self.num_steps, self.freq))
+            for i in range(self.batch_size):
+                if self.current_pos_in_spectrogram + self.num_steps >= len(self.current_spectrogram):
+                    break
+                x[i, :, :] = self.current_spectrogram[self.current_pos_in_spectrogram:self.current_pos_in_spectrogram + self.num_steps, :]
+                self.current_pos_in_spectrogram += self.skip_steps
+            return x
+        raise StopIteration
+
 def init_models():
     global one_class_svm_model
     global stepan_model
     one_class_svm_model = pickle.load(open(one_class_model_file, 'rb'))
     stepan_model = load_model(stepan_model_file)
+    stepan_model._make_predict_function()
     if one_class_svm_model is None or stepan_model is None:
         raise Exception("one class svm model OR stepan model are None")
 
@@ -78,7 +109,15 @@ def run():
         print('sound_data numpy: ', sound_data.shape)
         print('sound_chunk len: ', len(sound_chunk))
         audio_features = extract_audio_features(sound_data.astype(np.float32), sampling_rate, hop_length)
-        print('is familiar command: ', is_familiar_command(one_class_svm_model.predict(audio_features)))
+        is_familiar = is_familiar_command(one_class_svm_model.predict(audio_features))
+        print('is familiar command: ', is_familiar)
+        if is_familiar:
+            for chunk in StepanBatchGenerator(sound_data):
+                prediction = stepan_model.predict_proba(chunk)
+                print(prediction)
+                predicted = np.argmax(prediction, axis=1)
+                print('predicted: ', predicted)
+
 
 def start():
     stepan_thread = threading.Thread(target=run)
