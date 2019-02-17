@@ -14,7 +14,7 @@ silent_stepans = 5
 # pre-def
 q = queue.Queue(1024)
 one_class_model_file = 'models/one_class_model.pkl'
-stepan_model_file = 'models/stepan_4_classes_acc_89.hdf5'
+stepan_model_file = 'models/stepan_4_classes_acc_86.hdf5'
 
 # librosa params
 sampling_rate = 44100
