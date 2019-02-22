@@ -4,6 +4,7 @@ import udp_ep
 addr = '0.0.0.0'
 port = 8080
 
+
 async def handler(request):
     uri = str(request.rel_url)
     print("Request: ", uri)
@@ -17,6 +18,7 @@ async def handler(request):
         return web.Response(text=udp_ep.status)
     else:
         return web.Response(text="not implemented")
+
 
 async def main():
     server = web.Server(handler)

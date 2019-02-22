@@ -4,12 +4,14 @@ from socket import *
 import sys
 from scipy.io import wavfile
 
+
 def read_data(path):
     if len(path) == 0:
         raise FileNotFoundError
     fs, fdata = wavfile.read(path)
     print('numpy shape: ', fdata.shape)
     return fdata.tobytes()
+
 
 host = sys.argv[1]
 port = 5006

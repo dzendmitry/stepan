@@ -3,6 +3,7 @@
 import asyncio
 import stepan
 import replier
+import refresher
 import noiser
 
 import udp_ep
@@ -12,6 +13,8 @@ if __name__ == "__main__":
     # stepan
     stepan.init_models()
     stepan.start()
+    # refresher
+    refresher.start()
     # replier
     replier.start()
     # noise lvl updater

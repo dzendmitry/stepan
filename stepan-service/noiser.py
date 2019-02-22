@@ -13,10 +13,14 @@ noise_upper_bound = 10000
 commands_queue = queue.Queue()
 
 noise_queue = queue.Queue()
+
+
 class GetNoiseBuffer:
     pass
 
+
 time_to_sleep = 10 # seconds
+
 
 def run():
     global noise_level
@@ -40,6 +44,7 @@ def run():
         print(datetime.datetime.now(), 'noise level: ', noise_level)
 
         time.sleep(time_to_sleep)
+
 
 def start():
     t = threading.Thread(target=run)

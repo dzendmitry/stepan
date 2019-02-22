@@ -1,15 +1,29 @@
 import pickle
 import threading
 import queue
+import datetime
 
 from keras.models import load_model
 import numpy as np
 import librosa
 from scipy import signal
+from enum import Enum
 
-min_message_length = 60000 # the name of STEPAN
+import refresher
+import replier
+from replier import Commands as Classes
+
+
+class States(Enum):
+    WAIT_STEPAN = 1
+    WAIT_COMMAND = 2
+
+
+# params
+min_message_length = 60000  # the name of STEPAN
 min_message_in_samples = int(min_message_length / 2)
 silent_stepans = 5
+state = States.WAIT_STEPAN
 
 # pre-def
 q = queue.Queue(1024)
@@ -25,9 +39,11 @@ n_mfcc = 13
 one_class_svm_model = None
 stepan_model = None
 
+
 def get_spectrogram_of_data(samples, sample_rate=44100):
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate)
     return spectrogram.T
+
 
 class StepanBatchGenerator:
 
@@ -50,10 +66,12 @@ class StepanBatchGenerator:
             for i in range(self.batch_size):
                 if self.current_pos_in_spectrogram + self.num_steps >= len(self.current_spectrogram):
                     break
-                x[i, :, :] = self.current_spectrogram[self.current_pos_in_spectrogram:self.current_pos_in_spectrogram + self.num_steps, :]
+                x[i, :, :] = self.current_spectrogram[
+                             self.current_pos_in_spectrogram:self.current_pos_in_spectrogram + self.num_steps, :]
                 self.current_pos_in_spectrogram += self.skip_steps
             return x
         raise StopIteration
+
 
 def init_models():
     global one_class_svm_model
@@ -64,7 +82,8 @@ def init_models():
     if one_class_svm_model is None or stepan_model is None:
         raise Exception("one class svm model OR stepan model are None")
 
-def extract_audio_features(sound_data, sampling_rate, hop_length):
+
+def extract_audio_features(sound_data):
     mfcc = librosa.feature.mfcc(y=sound_data, sr=sampling_rate, hop_length=hop_length, n_mfcc=n_mfcc)
     spectral_center = librosa.feature.spectral_centroid(y=sound_data, sr=sampling_rate, hop_length=hop_length)
     chroma = librosa.feature.chroma_stft(y=sound_data, sr=sampling_rate, hop_length=hop_length)
@@ -82,9 +101,11 @@ def extract_audio_features(sound_data, sampling_rate, hop_length):
 
     return features
 
+
 def get_spectrogram(samples, sample_rate=44100):
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate)
     return spectrogram.T
+
 
 def is_familiar_command(data_predicted, threshold=0.7):
     familiar_count = float(len(data_predicted[data_predicted == 1]))
@@ -97,6 +118,62 @@ def is_familiar_command(data_predicted, threshold=0.7):
         return True
     return False
 
+
+def is_it_stepan(classes_counters):
+    if 0 <= len(classes_counters) <= 2:
+        if Classes.STEPAN.value in classes_counters:
+            if classes_counters[Classes.STEPAN.value] >= 2:
+                return True
+    return False
+
+
+def parse_command(classes_counters):
+    if len(classes_counters) == 0:
+        return Classes.NOISE, False
+    if Classes.NOISE.value in classes_counters:
+        del classes_counters[Classes.NOISE.value]
+    print(classes_counters)
+    command = max(classes_counters, key=classes_counters.get)
+    if command != Classes.STEPAN.value:
+        return command, True
+    return command, False
+
+
+def analyze_predictions(predictions):
+    """
+    TODO: a lot of heuristics. try to rewrite it using some smart algo
+    """
+    global state
+
+    classes_counters = dict()
+    for prediction in predictions:
+        last_chunk_class = None
+        for chunk_class in prediction:
+            if last_chunk_class is None:
+                last_chunk_class = chunk_class
+                continue
+            if chunk_class == last_chunk_class:
+                if chunk_class not in classes_counters:
+                    classes_counters[chunk_class] = 2
+                else:
+                    classes_counters[chunk_class] += 1
+            last_chunk_class = chunk_class
+
+    if is_it_stepan(classes_counters):
+        print("Got STEPAN command")
+        replier.q.put(Classes.STEPAN, block=False)
+        state = States.WAIT_COMMAND
+        refresher.q.put(datetime.datetime.now())
+        return
+
+    if state == States.WAIT_COMMAND:
+        command, ok = parse_command(classes_counters)
+        if ok:
+            print("Got command ", command)
+            replier.q.put(Classes(command), block=False)
+            state = States.WAIT_STEPAN
+
+
 def run():
     global one_class_svm_model
     global stepan_model
@@ -108,15 +185,18 @@ def run():
         sound_data = np.frombuffer(sound_chunk, dtype=np.int16)
         print('sound_data numpy: ', sound_data.shape)
         print('sound_chunk len: ', len(sound_chunk))
-        audio_features = extract_audio_features(sound_data.astype(np.float32), sampling_rate, hop_length)
+        audio_features = extract_audio_features(sound_data.astype(np.float32))
         is_familiar = is_familiar_command(one_class_svm_model.predict(audio_features))
         print('is familiar command: ', is_familiar)
         if is_familiar:
+            predictions = []
             for chunk in StepanBatchGenerator(sound_data):
                 prediction = stepan_model.predict_proba(chunk)
                 print(prediction)
                 predicted = np.argmax(prediction, axis=1)
                 print('predicted: ', predicted)
+                predictions.append(predicted)
+            analyze_predictions(predictions)
 
 
 def start():

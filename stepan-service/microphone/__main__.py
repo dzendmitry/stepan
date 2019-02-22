@@ -13,9 +13,11 @@ addr = (host,port)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+
 def callback(in_data, frame_count, time_info, status):
     s.sendto(in_data, addr)
-    return (None, pyaudio.paContinue)
+    return None, pyaudio.paContinue
+
 
 audio = pyaudio.PyAudio()
 stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK, stream_callback=callback)
