@@ -11,6 +11,7 @@ class Commands(Enum):
     STEPAN = 1
     SHOW_CATALOG_API = 2
     SHOW_K8S_API = 3
+    SHOW_ITEM_API = 4
 
 
 def run():
@@ -24,6 +25,8 @@ def run():
             print("RESPONSE: Showing CATALOG API dashboard")
         elif command == Commands.SHOW_K8S_API:
             print("RESPONSE: Showing K8S dashboard")
+        elif command == Commands.SHOW_ITEM_API:
+            print("RESPONSE: Showing ITEM API dashboard")
         else:
             print("RESPONSE: Unknown command")
 

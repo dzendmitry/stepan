@@ -27,8 +27,8 @@ state = States.WAIT_STEPAN
 
 # pre-def
 q = queue.Queue(1024)
-one_class_model_file = 'models/one_class_model.pkl'
-stepan_model_file = 'models/stepan_4_classes_acc_86.hdf5'
+one_class_model_file = 'models/one_class_model_for_5_classes.pkl'
+stepan_model_file = 'models/stepan_model_5_classes_(noise,stepan,catalog,kuber,item)_acc_84.hdf5'
 
 # librosa params
 sampling_rate = 44100
