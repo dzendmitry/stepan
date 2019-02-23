@@ -107,7 +107,7 @@ def get_spectrogram(samples, sample_rate=44100):
     return spectrogram.T
 
 
-def is_familiar_command(data_predicted, threshold=0.7):
+def is_familiar_command(data_predicted, threshold=0.9):
     familiar_count = float(len(data_predicted[data_predicted == 1]))
     print('familiar_count', familiar_count)
     all_data_count = float(len(data_predicted))
@@ -132,8 +132,12 @@ def parse_command(classes_counters):
         return Classes.NOISE, False
     if Classes.NOISE.value in classes_counters:
         del classes_counters[Classes.NOISE.value]
-    print(classes_counters)
-    command = max(classes_counters, key=classes_counters.get)
+    print("classes_counters: ", classes_counters)
+    command = Classes.NOISE
+    try:
+        command = max(classes_counters, key=classes_counters.get)
+    except:
+        return Classes.NOISE, False
     if command != Classes.STEPAN.value:
         return command, True
     return command, False
