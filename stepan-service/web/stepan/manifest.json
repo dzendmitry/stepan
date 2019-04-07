@@ -1,0 +1,14 @@
+{
+    "name": "Stepan Chrome Client",
+    "version": "1.0",
+    "description": "Have fun with choosing tabs!",
+    "permissions": ["declarativeContent", "activeTab"],
+    "background": {
+        "scripts": ["auto-trigger.js"],
+        "persistent": false
+    },
+    "page_action": {
+        "default_popup": "popup.html"
+    },
+    "manifest_version": 2
+  }
