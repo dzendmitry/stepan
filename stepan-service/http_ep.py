@@ -10,6 +10,7 @@ from av.audio.layout import AudioLayout
 from av.audio.resampler import AudioResampler
 
 import udp_ep
+import replier
 
 addr = '0.0.0.0'
 port = 8080
@@ -61,10 +62,7 @@ async def handler(request):
 
         @pc.on('datachannel')
         def on_datachannel(channel):
-            @channel.on('message')
-            def on_message(message):
-                if isinstance(message, str) and message.startswith('ping'):
-                    channel.send('pong' + message[4:])
+            replier.channel = channel
 
         @pc.on('iceconnectionstatechange')
         async def on_iceconnectionstatechange():
