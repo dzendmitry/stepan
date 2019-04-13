@@ -5,6 +5,10 @@ import json
 import logging
 import uuid
 
+from av.audio.format import AudioFormat
+from av.audio.layout import AudioLayout
+from av.audio.resampler import AudioResampler
+
 import udp_ep
 
 addr = '0.0.0.0'
@@ -15,6 +19,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('pc')
 pcs = set()
 datagram_endpoint = udp_ep.Endpoint()
+
+target_audio_format = AudioFormat('s16')
+target_audio_layout = AudioLayout('mono')
+target_sample_rate = 44100
+resampler = AudioResampler(target_audio_format, target_audio_layout, target_sample_rate)
 
 
 async def handler(request):
@@ -71,6 +80,7 @@ async def handler(request):
             if track.kind == 'audio':
                 while True:
                     frame = await track.recv()
+                    frame = resampler.resample(frame)
                     data = frame.to_ndarray().tobytes()
                     datagram_endpoint.datagram_received(data, '')
 
