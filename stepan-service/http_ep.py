@@ -10,10 +10,11 @@ import udp_ep
 addr = '0.0.0.0'
 port = 8080
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger('pc')
 pcs = set()
+datagram_endpoint = udp_ep.Endpoint()
 
 
 async def handler(request):
@@ -64,11 +65,14 @@ async def handler(request):
                 pcs.discard(pc)
 
         @pc.on('track')
-        def on_track(track):
+        async def on_track(track):
             log_info('Track %s received', track.kind)
 
             if track.kind == 'audio':
-                pass
+                while True:
+                    frame = await track.recv()
+                    data = frame.to_ndarray().tobytes()
+                    datagram_endpoint.datagram_received(data, '')
 
             @track.on('ended')
             async def on_ended():
