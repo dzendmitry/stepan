@@ -1,9 +1,24 @@
 (function () {
+    function openLink(href) {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            var tab = tabs[0];
+            chrome.tabs.update(tab.id, {url: href});
+        });
+    }
     document.getElementById('call').addEventListener('click', function() {
       pc = createPeerConnection();
       dc = pc.createDataChannel('commands', {ordered: true});
       dc.onmessage = function(evt) {
-          alert(evt.data);
+          switch(evt.data) {
+              case 'Commands.STEPAN':
+              break;
+              case 'Commands.SHOW_CATALOG_API':
+              break;
+              case 'Commands.SHOW_K8S_API':
+              break;
+              case 'Commands.SHOW_ITEM_API':
+              break;
+          }
         };
       navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream) {
             stream.getTracks().forEach(function(track) {
