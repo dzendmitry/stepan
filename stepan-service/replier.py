@@ -9,6 +9,7 @@ channel = None
 
 
 class Commands(Enum):
+    STATE_SKIPPED = -1
     NOISE = 0
     STEPAN = 1
     SHOW_CATALOG_API = 2
@@ -20,7 +21,11 @@ def run():
     loop = asyncio.new_event_loop()
     while True:
         command = q.get()
-        if command == Commands.NOISE:
+        if command == Commands.STATE_SKIPPED:
+            print("RESPONSE: State skipped")
+            if channel is not None:
+                send_command(Commands.STATE_SKIPPED, loop)
+        elif command == Commands.NOISE:
             print("RESPONSE: Noise")
         elif command == Commands.STEPAN:
             print("RESPONSE: Yes, My Lord!")

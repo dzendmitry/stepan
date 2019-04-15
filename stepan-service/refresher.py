@@ -4,10 +4,14 @@ import stepan
 import queue
 import datetime
 
+import replier
+from replier import Commands
+
 q = queue.Queue()
 
 time_to_wait_command_in_seconds = 20
 time_skew_seconds = 2
+
 
 def run():
     while True:
@@ -20,6 +24,7 @@ def run():
         print("refresher: switching state...")
         if stepan.state != stepan.States.WAIT_STEPAN:
             stepan.state = stepan.States.WAIT_STEPAN
+            replier.q.put(Commands.STATE_SKIPPED)
         print("refresher: state switched")
 
 

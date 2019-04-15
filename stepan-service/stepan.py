@@ -176,6 +176,7 @@ def analyze_predictions(predictions):
             print("Got command ", command)
             replier.q.put(Classes(command), block=False)
             state = States.WAIT_STEPAN
+            replier.q.put(Classes.STATE_SKIPPED, block=False)
 
 
 def run():

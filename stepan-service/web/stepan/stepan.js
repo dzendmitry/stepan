@@ -10,7 +10,11 @@
       dc = pc.createDataChannel('commands', {ordered: true});
       dc.onmessage = function(evt) {
           switch(evt.data) {
+              case 'Commands.STATE_SKIPPED':
+              chrome.browserAction.setIcon({path: 'images/circle_red_48x48.png'});
+              break;
               case 'Commands.STEPAN':
+              chrome.browserAction.setIcon({path: 'images/circle_green_48x48.png'});
               break;
               case 'Commands.SHOW_CATALOG_API':
               break;
