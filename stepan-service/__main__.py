@@ -22,8 +22,8 @@ if __name__ == "__main__":
 
     loop = asyncio.get_event_loop()
     # Prepare udp server
-    # t = loop.create_datagram_endpoint(udp_ep.Endpoint, local_addr=(udp_ep.addr, udp_ep.port))
-    # loop.run_until_complete(t)
+    t = loop.create_datagram_endpoint(udp_ep.Endpoint, local_addr=(udp_ep.addr, udp_ep.port))
+    loop.run_until_complete(t)
     # Prepare http server
     loop.run_until_complete(http_ep.main())
     loop.run_forever()
