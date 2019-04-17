@@ -9,7 +9,7 @@ from replier import Commands
 
 q = queue.Queue()
 
-time_to_wait_command_in_seconds = 20
+time_to_wait_command_in_seconds = 30
 time_skew_seconds = 2
 
 

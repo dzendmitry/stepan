@@ -78,9 +78,12 @@ async def handler(request):
             if track.kind == 'audio':
                 while True:
                     frame = await track.recv()
-                    frame = resampler.resample(frame)
-                    data = frame.to_ndarray().tobytes()
-                    datagram_endpoint.datagram_received(data, '')
+                    try:
+                        frame = resampler.resample(frame)
+                        data = frame.to_ndarray().tobytes()
+                        datagram_endpoint.datagram_received(data, '')
+                    except:
+                        pass
 
             @track.on('ended')
             async def on_ended():

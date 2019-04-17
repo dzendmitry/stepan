@@ -22,7 +22,7 @@ class States(Enum):
 # params
 min_message_length = 60000  # the name of STEPAN
 min_message_in_samples = int(min_message_length / 2)
-silent_stepans = 5
+silent_stepans = 2
 state = States.WAIT_STEPAN
 
 # pre-def
@@ -120,10 +120,9 @@ def is_familiar_command(data_predicted, threshold=0.9):
 
 
 def is_it_stepan(classes_counters):
-    if 0 <= len(classes_counters) <= 2:
-        if Classes.STEPAN.value in classes_counters:
-            if classes_counters[Classes.STEPAN.value] >= 2:
-                return True
+    if Classes.STEPAN.value in classes_counters:
+        if classes_counters[Classes.STEPAN.value] >= 2:
+            return True
     return False
 
 
@@ -163,7 +162,7 @@ def analyze_predictions(predictions):
                     classes_counters[chunk_class] += 1
             last_chunk_class = chunk_class
 
-    if is_it_stepan(classes_counters):
+    if state == States.WAIT_STEPAN and is_it_stepan(classes_counters):
         print("Got STEPAN command")
         replier.q.put(Classes.STEPAN, block=False)
         state = States.WAIT_COMMAND

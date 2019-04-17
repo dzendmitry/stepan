@@ -19,7 +19,7 @@ class GetNoiseBuffer:
     pass
 
 
-time_to_sleep = 10 # seconds
+time_to_sleep = 3 # seconds
 
 
 def run():
