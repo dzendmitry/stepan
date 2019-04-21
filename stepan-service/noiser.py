@@ -8,7 +8,7 @@ import librosa
 import stepan
 
 noise_level = None
-noise_upper_bound = 20000
+noise_upper_bound = 10000
 
 commands_queue = queue.Queue()
 
