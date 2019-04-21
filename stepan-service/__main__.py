@@ -5,6 +5,9 @@ import stepan
 import replier
 import refresher
 import noiser
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 import udp_ep
 import http_ep

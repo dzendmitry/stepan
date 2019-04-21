@@ -2,6 +2,10 @@ import asyncio
 import threading
 import queue
 from enum import Enum
+import logging
+
+logger = logging.getLogger('replier')
+
 
 q = queue.Queue()
 
@@ -22,29 +26,29 @@ def run():
     while True:
         command = q.get()
         if command == Commands.STATE_SKIPPED:
-            print("RESPONSE: State skipped")
+            logger.info("RESPONSE: State skipped")
             if channel is not None:
                 send_command(Commands.STATE_SKIPPED, loop)
         elif command == Commands.NOISE:
-            print("RESPONSE: Noise")
+            logger.info("RESPONSE: Noise")
         elif command == Commands.STEPAN:
-            print("RESPONSE: Yes, My Lord!")
+            logger.info("RESPONSE: Yes, My Lord!")
             if channel is not None:
                 send_command(Commands.STEPAN, loop)
         elif command == Commands.SHOW_CATALOG_API:
-            print("RESPONSE: Showing CATALOG API dashboard")
+            logger.info("RESPONSE: Showing CATALOG API dashboard")
             if channel is not None:
                 send_command(Commands.SHOW_CATALOG_API, loop)
         elif command == Commands.SHOW_K8S_API:
-            print("RESPONSE: Showing K8S dashboard")
+            logger.info("RESPONSE: Showing K8S dashboard")
             if channel is not None:
                 send_command(Commands.SHOW_K8S_API, loop)
         elif command == Commands.SHOW_ITEM_API:
-            print("RESPONSE: Showing ITEM API dashboard")
+            logger.info("RESPONSE: Showing ITEM API dashboard")
             if channel is not None:
                 send_command(Commands.SHOW_ITEM_API, loop)
         else:
-            print("RESPONSE: Unknown command")
+            logger.info("RESPONSE: Unknown command")
 
 
 def send_command(cmd, loop):

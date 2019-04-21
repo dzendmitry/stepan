@@ -15,9 +15,7 @@ import replier
 addr = '0.0.0.0'
 port = 8080
 
-logging.basicConfig(level=logging.INFO)
-
-logger = logging.getLogger('pc')
+logger = logging.getLogger('http_ep')
 pcs = set()
 datagram_endpoint = udp_ep.Endpoint()
 
@@ -29,7 +27,7 @@ resampler = AudioResampler(target_audio_format, target_audio_layout, target_samp
 
 async def handler(request):
     uri = str(request.rel_url)
-    print("Request: ", uri)
+    logger.info('Request: {}'.format(uri))
     if uri == '/start':
         udp_ep.status = "start"
         return web.Response(text=udp_ep.status)
@@ -113,4 +111,4 @@ async def main():
     await runner.setup()
     site = web.TCPSite(runner, addr, port)
     await site.start()
-    print("======= Serving on http://127.0.0.1:8080/ ======")
+    logger.info("======= Serving on http://127.0.0.1:8080/ ======")

@@ -3,13 +3,17 @@
 from socket import *
 import sys
 from scipy.io import wavfile
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('client')
 
 
 def read_data(path):
     if len(path) == 0:
         raise FileNotFoundError
     fs, fdata = wavfile.read(path)
-    print('numpy shape: ', fdata.shape)
+    logger.info('numpy shape: {}'.format(fdata.shape))
     return fdata.tobytes()
 
 
@@ -20,7 +24,7 @@ addr = (host,port)
 file_name=sys.argv[2]
 
 data = read_data(file_name)
-print('data length: ', len(data))
+logger.info('data length: {}'.format(len(data)))
 
 s = socket(AF_INET, SOCK_DGRAM)
 for i in range(0, len(data), buf):

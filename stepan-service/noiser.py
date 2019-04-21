@@ -4,8 +4,12 @@ import datetime
 import queue
 import numpy as np
 import librosa
+import logging
 
 import stepan
+
+logger = logging.getLogger('noiser')
+
 
 noise_level = None
 noise_upper_bound = 10000
@@ -41,7 +45,7 @@ def run():
 
         if count > 1:
             noise_level = np.sum(rmss) / count
-        print(datetime.datetime.now(), 'noise level: ', noise_level)
+        logger.info('noise level: {}'.format(noise_level))
 
         time.sleep(time_to_sleep)
 

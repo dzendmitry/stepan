@@ -2,6 +2,7 @@ import pickle
 import threading
 import queue
 import datetime
+import logging
 
 from keras.models import load_model
 import numpy as np
@@ -12,6 +13,8 @@ from enum import Enum
 import refresher
 import replier
 from replier import Commands as Classes
+
+logger = logging.getLogger('stepan')
 
 
 class States(Enum):
@@ -55,7 +58,7 @@ class StepanBatchGenerator:
         self.freq = freq
         self.current_pos_in_spectrogram = 0
         self.current_spectrogram = get_spectrogram_of_data(self.data)
-        print('current_spectrogram', len(self.current_spectrogram))
+        logger.info('current_spectrogram {}'.format(len(self.current_spectrogram)))
 
     def __iter__(self):
         return self
@@ -107,13 +110,13 @@ def get_spectrogram(samples, sample_rate=44100):
     return spectrogram.T
 
 
-def is_familiar_command(data_predicted, threshold=0.9):
+def is_familiar_command(data_predicted, threshold=0.8):
     familiar_count = float(len(data_predicted[data_predicted == 1]))
-    print('familiar_count', familiar_count)
+    logger.info('familiar_count {}'.format(familiar_count))
     all_data_count = float(len(data_predicted))
-    print('all_data_count', all_data_count)
+    logger.info('all_data_count {}'.format(all_data_count))
     familiar_percent = familiar_count / all_data_count
-    print('familiar_percent', familiar_percent, ' threshold ', threshold)
+    logger.info('familiar_percent {}, threshold {}'.format(familiar_percent, threshold))
     if familiar_percent >= threshold:
         return True
     return False
@@ -131,7 +134,7 @@ def parse_command(classes_counters):
         return Classes.NOISE, False
     if Classes.NOISE.value in classes_counters:
         del classes_counters[Classes.NOISE.value]
-    print("classes_counters: ", classes_counters)
+    logger.info("classes_counters: {}".format(classes_counters))
     command = Classes.NOISE
     try:
         command = max(classes_counters, key=classes_counters.get)
@@ -163,7 +166,7 @@ def analyze_predictions(predictions):
             last_chunk_class = chunk_class
 
     if state == States.WAIT_STEPAN and is_it_stepan(classes_counters):
-        print("Got STEPAN command")
+        logger.info("Got STEPAN command")
         replier.q.put(Classes.STEPAN, block=False)
         state = States.WAIT_COMMAND
         refresher.q.put(datetime.datetime.now())
@@ -172,7 +175,7 @@ def analyze_predictions(predictions):
     if state == States.WAIT_COMMAND:
         command, ok = parse_command(classes_counters)
         if ok:
-            print("Got command ", command)
+            logger.info("Got command {}".format(command))
             replier.q.put(Classes(command), block=False)
             state = States.WAIT_STEPAN
             replier.q.put(Classes.STATE_SKIPPED, block=False)
@@ -187,18 +190,18 @@ def run():
         if len(sound_chunk) % 2 != 0:
             sound_chunk = sound_chunk[:-1]
         sound_data = np.frombuffer(sound_chunk, dtype=np.int16)
-        print('sound_data numpy: ', sound_data.shape)
-        print('sound_chunk len: ', len(sound_chunk))
+        logger.info('sound_data numpy: {}'.format(sound_data.shape))
+        logger.info('sound_chunk len: {}'.format(len(sound_chunk)))
         audio_features = extract_audio_features(sound_data.astype(np.float32))
         is_familiar = is_familiar_command(one_class_svm_model.predict(audio_features))
-        print('is familiar command: ', is_familiar)
+        logger.info('is familiar command: {}'.format(is_familiar))
         if is_familiar:
             predictions = []
             for chunk in StepanBatchGenerator(sound_data):
                 prediction = stepan_model.predict_proba(chunk)
-                print(prediction)
+                logger.info(prediction)
                 predicted = np.argmax(prediction, axis=1)
-                print('predicted: ', predicted)
+                logger.info('predicted: {}'.format( predicted))
                 predictions.append(predicted)
             analyze_predictions(predictions)
 

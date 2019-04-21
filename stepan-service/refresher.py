@@ -3,9 +3,12 @@ import time
 import stepan
 import queue
 import datetime
+import logging
 
 import replier
 from replier import Commands
+
+logger = logging.getLogger('refresher')
 
 q = queue.Queue()
 
@@ -21,11 +24,11 @@ def run():
         if diff.total_seconds() <= time_skew_seconds:
             continue
         time.sleep(time_to_wait_command_in_seconds)
-        print("refresher: switching state...")
+        logger.info("refresher: switching state...")
         if stepan.state != stepan.States.WAIT_STEPAN:
             stepan.state = stepan.States.WAIT_STEPAN
             replier.q.put(Commands.STATE_SKIPPED)
-        print("refresher: state switched")
+        logger.info("refresher: state switched")
 
 
 def start():
